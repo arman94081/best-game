@@ -19,7 +19,7 @@
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <canvas id="gameCanvas" width="200" height="300"></canvas>
   <div id="ui">
     <button id="startBtn">Start</button>
     <input type="text" id="inputField" autofocus />
@@ -43,10 +43,7 @@
   "suman","rahul","yash","vinayk","ruturaj","suhas",
   "constitution","preamble","fundamental","rights","duties","directive","principles","parliament",
   "legislation","act","bill","ordinance","jurisdiction","justice","equity","law","legal","tort",
-  "contract","liability","negligence","damages","precedent","appeal","petition","writ","habeas",
-  "corpus","mandamus","certiorari","prohibition","quo","warranto","evidence","crime","offence",
-  "punishment","remedy","compensation","property","ownership","citizen","democracy","equality",
-  "liberty","fraternity"];
+  "contract",];
     let activeWords=[],score=0,level=1,gameRunning=false,spawnCooldown=0;
 
 
@@ -55,7 +52,7 @@
         this.text=text;
         this.x=Math.random()*(canvas.width-100)+20;
         this.y=0;
-        this.speed=0.8+level*0.15;
+        this.speed=0.5+level*0.10;
       }
       draw(){
         let typed=inputField.value.trim().toLowerCase();
@@ -97,7 +94,7 @@
       activeWords.forEach(w=>w.update());
       activeWords.forEach(w=>w.draw());
       ctx.fillStyle="yellow";
-      ctx.fillText("Score: "+score,10,20);
+      ctx.fillText("Score: "+score,5,10);
       ctx.fillText("Level: "+level,10,40);
       requestAnimationFrame(update);
     }
@@ -137,3 +134,4 @@
   </script>
 </body>
 </html>
+
