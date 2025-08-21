@@ -3,227 +3,116 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jamkhed Type – Typing Game (Stable)</title>
+  <title>Jamkhed Type – Typing Game</title>
   <style>
-    :root{
-      --bg:#0b1020; --panel:#0f1630; --text:#e8ecff; --accent:#5eead4; --danger:#ff6b6b; --ok:#86efac;
-      --muted:#99a1c0; --glow:0 0 30px rgba(94,234,212,.35);
+    :root {
+      --bg:#0b1020; --panel:#0f1630; --text:#e8ecff; --accent:#5eead4; --danger:#ff6b6b;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",sans-serif;background:radial-gradient(1200px 800px at 70% -20%,#1a2250 0%,#0b1020 60%,#070a16 100%);color:var(--text);overflow:hidden}
-    .hud{position:fixed;inset:0;pointer-events:none}
-    .row{display:flex;gap:12px;align-items:center}
-    .top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center}
-    .pill{background:rgba(255,255,255,.06);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:999px;box-shadow:var(--glow)}
-    canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
-    .screen{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(180deg, rgba(7,10,22,.6), rgba(7,10,22,.9));}
-    .card{width:min(720px,92vw);border-radius:24px;padding:28px;box-shadow:0 15px 80px rgba(0,0,0,.5),var(--glow);background:linear-gradient(180deg,#121a3d,#0c132f);border:1px solid rgba(255,255,255,.1)}
-    h1{margin:0 0 8px;font-size:clamp(28px,5vw,44px)}
-    button{pointer-events:auto;border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:linear-gradient(180deg,#27f0cb,#1db9d7);color:#04222b;box-shadow:0 12px 30px rgba(29,185,215,.35);cursor:pointer}
-    .small{font-size:12px;color:var(--muted)}
-    #shadowInput{position:fixed;opacity:0;left:-9999px;top:auto;width:1px;height:1px}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
+    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+    #gameCanvas{background:var(--panel);border:2px solid var(--accent);border-radius:12px;display:block;margin:10px auto}
+    #ui{margin-top:10px;text-align:center}
+    button{background:var(--accent);color:var(--bg);padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:16px}
+    #inputField{opacity:0;position:absolute;pointer-events:none}
+    #gameOver{display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);color:#fff;font-size:24px}
+    #gameOver button{margin-top:15px}
   </style>
 </head>
 <body>
-  <canvas id="game"></canvas>
-
-  <div class="hud" aria-hidden="true">
-    <div class="top">
-      <div class="row pill title">💥 <span style="margin-left:8px">Jamkhed <span class="accent">Type</span></span></div>
-      <div class="row" style="gap:8px">
-        <div class="pill stat" id="score">Score: 0</div>
-        <div class="pill stat" id="level">Level: 1</div>
-        <div class="pill stat" id="accuracy">Acc: 100%</div>
-        <div class="pill stat" id="lives">❤️❤️❤️</div>
-      </div>
-    </div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="ui">
+    <button id="startBtn">Start</button>
+    <input type="text" id="inputField" autofocus />
   </div>
-
-  <div class="screen" id="startScreen">
-    <div class="card">
-      <h1>Jamkhed <span class="accent">Type</span></h1>
-      <h2>Typing game – शब्द टाईप करा, उल्कांना उडवा!</h2>
-      <div class="btns">
-        <button id="startBtn">▶️ Start Game</button>
-      </div>
-    </div>
+  <div id="gameOver">
+    <p id="finalScore"></p>
+    <button id="restartBtn">Restart</button>
+    <a href="ht" style="color:#5eead4;margin-top:10px;">Visit My Website</a>
   </div>
-
-  <div class="screen" id="gameOver" style="display:none">
-    <div class="card" style="text-align:center">
-      <h1>Game <span class="accent">Over</span></h1>
-      <h2 id="finalStats">Score: 0 • Level: 1 • Accuracy: 100%</h2>
-      <div class="btns" style="justify-content:center">
-        <button id="restartBtn">🔁 Play Again</button>
-        <a class="link" href="https://arman94081.github.io/masale/" target="_blank" rel="noopener">माझी वेबसाईट (Tikjat Masale)</a>
-      </div>
-    </div>
-  </div>
-
-  <input id="shadowInput" type="text" inputmode="text" autocapitalize="none" autocomplete="off" autocorrect="off" aria-hidden="true" />
-
   <script>
-    // Stable version: slower difficulty curve + shoot effect on word completion
-    const rand = (a,b)=>Math.random()*(b-a)+a;
-    const choice = arr => arr[(Math.random()*arr.length)|0];
-    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+    const canvas=document.getElementById("gameCanvas");
+    const ctx=canvas.getContext("2d");
+    const startBtn=document.getElementById("startBtn");
+    const inputField=document.getElementById("inputField");
+    const gameOverScreen=document.getElementById("gameOver");
+    const finalScore=document.getElementById("finalScore");
+    const restartBtn=document.getElementById("restartBtn");
 
-    const WORDS = [
-      "arman","jay","vishal","sachin","nara","mauli","vibhav","adity","pandurang","samir","shaikh",
-      "study","exam","notes","math","code","book","test","write","learn","law","logic","read"
-    ];
+    let words=["arman","jay","vishal","sachin","nara","mauli","vibhav","adity","pandurang","samir","shaikh"];
+    let activeWords=[],score=0,level=1,gameRunning=false,spawnCooldown=0;
 
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    let W=innerWidth,H=innerHeight; canvas.width=W; canvas.height=H;
-    addEventListener('resize',()=>{W=innerWidth;H=innerHeight;canvas.width=W;canvas.height=H});
-
-    let state='idle'; let words=[], particles=[];
-    let score=0, level=1, lives=3, typed=0, hits=0;
-    let tick=0, spawnCooldown=0, target=null;
-    const MAX_LEVEL=100;
-
-    const HUD={ score: document.getElementById('score'), level: document.getElementById('level'), acc: document.getElementById('accuracy'), lives: document.getElementById('lives') };
-
-    function updateHUD(){
-      HUD.score.textContent = `Score: ${score}`;
-      HUD.level.textContent = `Level: ${level}`;
-      const acc = typed? Math.max(0, Math.min(100, Math.round((hits/typed)*100))):100;
-      HUD.acc.textContent = `Acc: ${acc}%`;
-      HUD.lives.textContent = '❤️'.repeat(lives) + '🤍'.repeat(3-lives);
+    class Word {
+      constructor(text){
+        this.text=text;
+        this.x=Math.random()*(canvas.width-100)+20;
+        this.y=0;
+        this.speed=0.8+level*0.15;
+      }
+      draw(){
+        ctx.fillStyle="white";
+        ctx.font="20px sans-serif";
+        ctx.fillText(this.text,this.x,this.y);
+      }
+      update(){
+        this.y+=this.speed;
+        if(this.y>canvas.height){
+          endGame();
+        }
+      }
     }
-
-    // audio minimal
-    let audioCtx;
-    function ensureAudio(){ if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } if(audioCtx.state==='suspended') audioCtx.resume(); }
-    function beep(freq=440,dur=0.06,type='square',gain=.03){ if(!audioCtx) return; const t=audioCtx.currentTime; const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; o.connect(g); g.connect(audioCtx.destination); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+.005); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+.02); }
-    const sfx={ type:()=>beep(720,0.05,'square',.04), hit:()=>{beep(200,0.08,'sawtooth',.05); setTimeout(()=>beep(120,0.12,'sawtooth',.04),40)}, miss:()=>beep(120,0.12,'triangle',.06), level:()=>{beep(880,0.08,'square',.05); setTimeout(()=>beep(1320,0.08,'square',.04),90)} };
 
     function spawnWord(){
-      const w = choice(WORDS);
-      // Speed scaling: gentle curve, cap at 3.2
-      const baseSpeed = 0.4;
-      const speed = baseSpeed + Math.min(level,60) * 0.03 + rand(-0.03,0.03);
-      const capped = Math.min(speed, 3.2);
-      const x = clamp(rand(80, W-80), 60, W-60);
-      words.push({w, x, y:-20, i:0, speed:capped, dead:false});
+      const text=words[Math.floor(Math.random()*words.length)];
+      activeWords.push(new Word(text));
     }
 
-    function burst(x,y,color,strength=1){
-      for(let i=0;i<20;i++){
-        const angle = rand(-Math.PI, Math.PI);
-        const sp = rand(0.8,3.2) * strength;
-        particles.push({x,y, vx:Math.cos(angle)*sp, vy:Math.sin(angle)*sp, life:rand(20,50), color});
-      }
-    }
-
-    // shoot particle upwards to make 'shot' feeling
-    function shootEffect(x,y){
-      for(let i=0;i<10;i++){ particles.push({x,y, vx:rand(-1,1), vy:rand(-6,-2), life:rand(30,60), color:'#5eead4'}); }
-    }
-
-    const shadow = document.getElementById('shadowInput');
-    function focusMobile(){ try{ shadow.focus({preventScroll:true}); }catch(e){ shadow.focus(); } }
-
-    function processChar(ch){
-      if(state!=='playing') return;
-      const c = ch.toLowerCase();
-      if(!c) return;
-      if(c===' '){ target=null; return; }
-      typed++;
-      if(!target){ target = words.find(o=>!o.dead && o.w.startsWith(c)); }
-      if(!target){ sfx.miss(); updateHUD(); return; }
-      if(target.w[target.i]===c){
-        target.i++; hits++; sfx.type();
-        // small visual for letter hit
-        particles.push({x:target.x, y:target.y, vx:rand(-1,1), vy:rand(-1,-3), life:20, color:'#86efac'});
-        if(target.i>=target.w.length){
-          // Completed word: create shooting effect and score
-          target.dead=true; shootEffect(target.x, target.y - 10); burst(target.x, target.y, '#5eead4', 0.9); sfx.hit();
-          score += 10 + Math.floor(level*1.2);
-          updateHUD(); target=null;
-        }
-      } else { sfx.miss(); }
-    }
-
-    // Keyboard handlers (desktop)
-    window.addEventListener('keydown', (e)=>{
-      if(e.key.toLowerCase()==='p'){ if(state==='playing') pauseGame(); else if(state==='paused') resumeGame(); return; }
-      if(state!=='playing') return;
-      if(e.key===' '){ target=null; return; }
-      if(e.key==='Backspace'){ if(target && target.i>0){ target.i--; typed++; updateHUD(); } return; }
-      if(e.key.length===1){ processChar(e.key); }
-    });
-
-    // Mobile input
-    shadow.addEventListener('beforeinput', (e)=>{ if(state!=='playing') return; if(e.inputType==='deleteContentBackward'){ e.preventDefault(); if(target && target.i>0){ target.i--; typed++; updateHUD(); } } });
-    shadow.addEventListener('input', ()=>{ if(state!=='playing') return; const v=shadow.value; if(!v) return; for(const ch of v){ if(ch.trim()) processChar(ch); } shadow.value=''; });
-
-    ['touchstart','pointerdown','mousedown'].forEach(ev=>{ window.addEventListener(ev,()=>{ if(state==='playing'){ focusMobile(); ensureAudio(); } },{passive:true}); });
-
-    function step(){
-      requestAnimationFrame(step);
-      // never stop rAF loop — render in idle too so canvas doesn't freeze
-      tick++;
-      if(state!=='playing' && state!=='paused') return render();
-      if(state==='paused') return render();
-
-      // slower spawn progression
-      spawnCooldown -= 1;
-      if(spawnCooldown<=0 && words.length < 3 + Math.floor(level*0.6)){
+    function update(){
+      if(!gameRunning) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(spawnCooldown<=0){
         spawnWord();
-        // spawn cooldown decreases slowly with level, but stays reasonable
-        spawnCooldown = Math.max(22, 120 - Math.floor(level*6));
-      }
-
-      // level increase but gentler
-      if(tick % 2400 === 0 && level < MAX_LEVEL){ level++; sfx.level(); updateHUD(); }
-
-      const bottom = H - 60;
-      for(const o of words){
-        if(o.dead) continue;
-        o.y += o.speed;
-        // smooth slowdown for very high levels: cap speed increases
-        if(o.y >= bottom){ o.dead=true; lives--; burst(o.x, bottom, '#ff6b6b', 1.2); sfx.miss(); if(lives<=0){ endGame(); return; } updateHUD(); if(target===o) target=null; }
-      }
-
-      particles = particles.filter(p=>p.life-->0).map(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; return p; });
-      words = words.filter(o=>!o.dead || o.i<o.w.length);
-      render();
+        spawnCooldown=80-Math.min(level*5,60);
+      }else spawnCooldown--;
+      activeWords.forEach(w=>w.update());
+      activeWords.forEach(w=>w.draw());
+      ctx.fillStyle="yellow";
+      ctx.fillText("Score: "+score,10,20);
+      ctx.fillText("Level: "+level,10,40);
+      requestAnimationFrame(update);
     }
 
-    function render(){
-      ctx.clearRect(0,0,W,H);
-      ctx.fillStyle='#070a16'; ctx.fillRect(0,0,W,H);
-      // stars
-      for(let i=0;i<110;i++){ const y=((tick*0.4 + i*70)%H); const x=(i*97)%W; const r=(i%3)*.6+.4; ctx.globalAlpha = 0.15 + (i%4)*0.08; ctx.fillStyle='#9ab1ff'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
-      ctx.globalAlpha=1;
-
-      // draw words
-      for(const o of words){ if(o.dead) continue; const targetted = (o===target); const px=o.x, py=o.y; ctx.font='700 26px system-ui,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle = targetted? 'rgba(94,234,212,.12)' : 'rgba(255,255,255,.06)'; ctx.beginPath(); ctx.arc(px, py, 34, 0, Math.PI*2); ctx.fill(); const left = o.w.slice(o.i); const done = o.w.slice(0,o.i); if(done){ ctx.fillStyle = '#86efac'; ctx.fillText(done.toUpperCase(), px - ctx.measureText(left.toUpperCase()).width/2, py); } ctx.fillStyle = targetted ? '#e8ecff' : '#c6cffd'; ctx.fillText(left.toUpperCase(), px + ctx.measureText(done.toUpperCase()).width/2, py); }
-
-      // particles
-      for(const p of particles){ ctx.globalAlpha = clamp(p.life/60,0,1); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }
-      ctx.globalAlpha=1;
+    function checkInput(){
+      const val=inputField.value.trim().toLowerCase();
+      for(let i=0;i<activeWords.length;i++){
+        if(activeWords[i].text===val){
+          activeWords.splice(i,1);
+          score++;
+          if(score%5===0 && level<100) level++;
+          inputField.value="";
+          return;
+        }
+      }
     }
 
-    // screens
-    const startScreen = document.getElementById('startScreen'); const gameOver = document.getElementById('gameOver'); const finalStats = document.getElementById('finalStats');
-    function startGame(){ words.length=0; particles.length=0; score=0; level=1; lives=3; typed=0; hits=0; tick=0; spawnCooldown=0; target=null; state='playing'; startScreen.style.display='none'; gameOver.style.display='none'; ensureAudio(); focusMobile(); }
-    function endGame(){ state='over'; finalStats.textContent = `Score: ${score} • Level: ${level} • Accuracy: ${typed?Math.round((hits/typed)*100):100}%`; gameOver.style.display='grid'; }
-    function pauseGame(){ if(state==='playing'){ state='paused'; }} function resumeGame(){ if(state==='paused'){ state='playing'; focusMobile(); ensureAudio(); }}
+    function endGame(){
+      gameRunning=false;
+      gameOverScreen.style.display="flex";
+      finalScore.textContent="Game Over! Score: "+score;
+    }
 
-    document.getElementById('startBtn').onclick=startGame; document.getElementById('restartBtn').onclick=()=>{startGame()};
-    window.addEventListener('keydown',e=>{ if(e.key.toLowerCase()==='p'){ if(state==='playing') pauseGame(); else if(state==='paused') resumeGame(); }});
+    function startGame(){
+      activeWords=[];score=0;level=1;spawnCooldown=0;
+      gameRunning=true;
+      gameOverScreen.style.display="none";
+      inputField.value="";
+      inputField.focus();
+      setTimeout(()=>inputField.focus(),200); // mobile fix
+      update();
+    }
 
-    // input hookups
-    window.addEventListener('keydown', (e)=>{ if(state!=='playing') return; if(e.key===' '){ target=null; return; } if(e.key==='Backspace'){ if(target && target.i>0){ target.i--; typed++; updateHUD(); } return; } if(e.key.length===1){ processChar(e.key); } });
-    shadow.addEventListener('beforeinput', (e)=>{ if(state!=='playing') return; if(e.inputType==='deleteContentBackward'){ e.preventDefault(); if(target && target.i>0){ target.i--; typed++; updateHUD(); } } });
-    shadow.addEventListener('input', ()=>{ if(state!=='playing') return; const v=shadow.value; if(!v) return; for(const ch of v){ if(ch.trim()) processChar(ch); } shadow.value=''; });
-
-    // start loop
-    step(); setTimeout(()=>focusMobile(),500);
+    startBtn.onclick=()=>{startGame()};
+    restartBtn.onclick=()=>{startGame()};
+    inputField.addEventListener("input",checkInput);
   </script>
 </body>
 </html>
