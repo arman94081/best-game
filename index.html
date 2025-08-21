@@ -38,8 +38,17 @@
     const finalScore=document.getElementById("finalScore");
     const restartBtn=document.getElementById("restartBtn");
 
-    let words=["arman","jay","vishal","sachin","nara","mauli","vibhav","adity","pandurang","samir","shaikh"];
+   let words = [
+  "arman","jay","vishal","sachin","nara","mauli","vibhav","adity","pandurang","samir","shaikh",
+  "suman","rahul","yash","vinayk","ruturaj","suhas",
+  "constitution","preamble","fundamental","rights","duties","directive","principles","parliament",
+  "legislation","act","bill","ordinance","jurisdiction","justice","equity","law","legal","tort",
+  "contract","liability","negligence","damages","precedent","appeal","petition","writ","habeas",
+  "corpus","mandamus","certiorari","prohibition","quo","warranto","evidence","crime","offence",
+  "punishment","remedy","compensation","property","ownership","citizen","democracy","equality",
+  "liberty","fraternity"];
     let activeWords=[],score=0,level=1,gameRunning=false,spawnCooldown=0;
+
 
     class Word {
       constructor(text){
@@ -49,9 +58,21 @@
         this.speed=0.8+level*0.15;
       }
       draw(){
-        ctx.fillStyle="white";
+        let typed=inputField.value.trim().toLowerCase();
         ctx.font="20px sans-serif";
-        ctx.fillText(this.text,this.x,this.y);
+
+        for(let i=0;i<this.text.length;i++){
+          let char=this.text[i];
+          let color="white";
+
+          if(i<typed.length){
+            if(char===typed[i]) color="lime";  
+            else color="red";                  
+          }
+
+          ctx.fillStyle=color;
+          ctx.fillText(char,this.x+i*14,this.y); 
+        }
       }
       update(){
         this.y+=this.speed;
@@ -106,7 +127,7 @@
       gameOverScreen.style.display="none";
       inputField.value="";
       inputField.focus();
-      setTimeout(()=>inputField.focus(),200); // mobile fix
+      setTimeout(()=>inputField.focus(),200);
       update();
     }
 
