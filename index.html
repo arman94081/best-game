@@ -1,138 +1,593 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jamkhed Type – Typing Game</title>
-  <style>
-    :root {
-      --bg:#0b1020; --panel:#0f1630; --text:#e8ecff; --accent:#5eead4; --danger:#ff6b6b;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
-    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden}
-    #gameCanvas{background:var(--panel);border:2px solid var(--accent);border-radius:12px;display:block;margin:10px auto}
-    #ui{margin-top:10px;text-align:center}
-    button{background:var(--accent);color:var(--bg);padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:16px}
-    #inputField{opacity:0;position:absolute;pointer-events:none}
-    #gameOver{display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);color:#fff;font-size:24px}
-    #gameOver button{margin-top:15px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>गेम झोन - मोफत गेम्स खेळा</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark: #1e272e;
+            --light: #f5f6fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #2d3436 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        /* हेडर स्टाईलिंग */
+        header {
+            background: rgba(30, 39, 46, 0.95);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            font-size: 28px;
+            color: var(--accent);
+            margin-right: 10px;
+        }
+        
+        .logo-text {
+            font-size: 22px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* नेव्हिगेशन */
+        nav {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 20px;
+        }
+        
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-links a i {
+            margin-right: 5px;
+            font-size: 18px;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* हिरो सेक्शन */
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+            background: radial-gradient(circle, #2d3436 0%, var(--dark) 100%);
+            border-radius: 15px;
+            margin: 25px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .hero h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            color: #dcdde1;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 5px;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        /* गेम्स सेक्शन */
+        .games-section {
+            padding: 40px 0;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 25px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .game-img {
+            height: 160px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            position: relative;
+        }
+        
+        .game-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .game-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-content h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .game-content p {
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            font-size: 14px;
+            flex-grow: 1;
+        }
+        
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--secondary);
+        }
+        
+        /* गेम प्ले बटण स्टाईल */
+        .play-btn {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .play-btn i {
+            margin-right: 5px;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* गेम कंटेनर */
+        .game-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .game-iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            border: none;
+            border-radius: 10px;
+            background: white;
+        }
+        
+        .close-btn {
+            margin-top: 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* मोबाईल रेस्पॉन्सिव्हनेस */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links li {
+                margin: 5px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+            }
+            
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 15px;
+            }
+            
+            .nav-links.show {
+                display: flex;
+            }
+            
+            .nav-links li {
+                margin: 10px 0;
+            }
+        }
+        
+        /* फूटर */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            background: rgba(30, 39, 46, 0.8);
+            margin-top: 40px;
+            border-radius: 15px;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            margin: 0 10px;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="ui">
-    <button id="startBtn">Start</button>
-    <input type="text" id="inputField" autofocus />
-  </div>
-  <div id="gameOver">
-    <p id="finalScore"></p>
-    <button id="restartBtn">Restart</button>
-    <a href="hello i am ARMAN" style="color:#5eead4;margin-top:10px;">hello i am ARMAN</a>
-  </div>
-  <script>
-    const canvas=document.getElementById("gameCanvas");
-    const ctx=canvas.getContext("2d");
-    const startBtn=document.getElementById("startBtn");
-    const inputField=document.getElementById("inputField");
-    const gameOverScreen=document.getElementById("gameOver");
-    const finalScore=document.getElementById("finalScore");
-    const restartBtn=document.getElementById("restartBtn");
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <div class="logo-text">गेम झोन</div>
+            </div>
+            
+            <button class="mobile-menu-btn" id="menuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#"><i class="fas fa-home"></i> मुख्यपृष्ठ</a></li>
+                    <li><a href="#"><i class="fas fa-gamepad"></i> गेम्स</a></li>
+                    <li><a href="#"><i class="fas fa-trophy"></i> स्पर्धा</a></li>
+                    <li><a href="#"><i class="fas fa-envelope"></i> संपर्क</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-   let words = [
-  "arman","jay","vishal","sachin","nara","mauli","vibhav","adity","pandurang","samir","shaikh",
-  "suman","rahul","yash","vinayk","ruturaj","suhas",
-  "constitution","preamble","fundamental","rights","duties","directive","principles","parliament",
-  "legislation","act","bill","ordinance","jurisdiction","justice","equity","law","legal","tort",
-  "contract",];
-    let activeWords=[],score=0,level=1,gameRunning=false,spawnCooldown=0;
+    <div class="container">
+        <section class="hero">
+            <h1>मोफत गेम्सचा आनंद घ्या</h1>
+            <p>आमच्या वेबसाइटवर तुम्ही थेट ब्राउझरमध्येच खेळू शकता. कोणत्याही डाउनलोडची आवश्यकता नाही!</p>
+            <div>
+                <a href="#games" class="btn"><i class="fas fa-play"></i> गेम्स प्ले करा</a>
+                <a href="#how-to-play" class="btn btn-outline"><i class="fas fa-info-circle"></i> कसे खेळाल?</a>
+            </div>
+        </section>
 
+        <section class="games-section" id="games">
+            <h2 class="section-title"><i class="fas fa-fire"></i> लोकप्रिय गेम्स</h2>
+            <div class="games-grid">
+                <div class="game-card">
+                    <div class="game-img">
+                        🎮
+                        <div class="game-badge">नवीन</div>
+                    </div>
+                    <div class="game-content">
+                        <h3>स्नेक गेम</h3>
+                        <p>क्लासिक स्नेक गेम, सर्पांना लांब करण्यासाठी फळे गोळा करा</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-mobile-alt"></i> मोबाईल फ्रेंडली</span>
+                        </div>
+                        <button class="play-btn" onclick="playGame('snake')"><i class="fas fa-play"></i> प्ले</button>
+                    </div>
+                </div>
+                
+                <div class="game-card">
+                    <div class="game-img">
+                        🧩
+                        <div class="game-badge">ट्रेंडिंग</div>
+                    </div>
+                    <div class="game-content">
+                        <h3>मेमोरी मॅच</h3>
+                        <p>चित्रांना जुळवा आणि आपली यादशक्ती चाचणी करा</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-mobile-alt"></i> मोबाईल फ्रेंडली</span>
+                        </div>
+                        <button class="play-btn" onclick="playGame('memory')"><i class="fas fa-play"></i> प्ले</button>
+                    </div>
+                </div>
+                
+                <div class="game-card">
+                    <div class="game-img">
+                        ✏️
+                    </div>
+                    <div class="game-content">
+                        <h3>टिक-टॅक-टो</h3>
+                        <p>क्लासिक टिक-टॅक-टो गेम, मित्रासोबत किंवा कॉम्प्युटरसोबत खेळा</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-mobile-alt"></i> मोबाईल फ्रेंडली</span>
+                        </div>
+                        <button class="play-btn" onclick="playGame('tictactoe')"><i class="fas fa-play"></i> प्ले</button>
+                    </div>
+                </div>
+                
+                <div class="game-card">
+                    <div class="game-img">
+                        🎯
+                        <div class="game-badge">नवीन</div>
+                    </div>
+                    <div class="game-content">
+                        <h3>कलर मॅच</h3>
+                        <p>रंग जुळवण्याचा मजेदार गेम, वेगवान प्रतिक्रिया द्या</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-mobile-alt"></i> मोबाईल फ्रेंडली</span>
+                        </div>
+                        <button class="play-btn" onclick="playGame('color')"><i class="fas fa-play"></i> प्ले</button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    class Word {
-      constructor(text){
-        this.text=text;
-        this.x=Math.random()*(canvas.width-100)+20;
-        this.y=0;
-        this.speed=0.5+level*0.10;
-      }
-      draw(){
-        let typed=inputField.value.trim().toLowerCase();
-        ctx.font="20px sans-serif";
+        <section id="how-to-play" style="padding: 40px 0;">
+            <h2 class="section-title"><i class="fas fa-question-circle"></i> गेम कसे खेळाल?</h2>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
+                <p>1. वरील गेम्सपैकी एक निवडा आणि "प्ले" बटणावर क्लिक करा</p>
+                <p>2. गेम नवीन विंडोमध्ये उघडेल</p>
+                <p>3. मोबाईलवर सहज खेळण्यासाठी टच कंट्रोल्स वापरा</p>
+                <p>4. गेम संपवल्यानंतर "बॅक टू वेबसाइट" बटणावर क्लिक करा</p>
+            </div>
+        </section>
+    </div>
 
-        for(let i=0;i<this.text.length;i++){
-          let char=this.text[i];
-          let color="white";
+    <div class="game-container" id="gameContainer">
+        <iframe class="game-iframe" id="gameFrame" src=""></iframe>
+        <button class="close-btn" onclick="closeGame()">वेबसाइटवर परत जा</button>
+    </div>
 
-          if(i<typed.length){
-            if(char===typed[i]) color="lime";  
-            else color="red";                  
-          }
+    <footer>
+        <div class="container">
+            <p>© 2023 गेम झोन. सर्व हक्क राखीव.</p>
+            <p>ब्राउझरमध्ये थेट खेळण्यासाठी सर्वोत्तम गेम्स</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
 
-          ctx.fillStyle=color;
-          ctx.fillText(char,this.x+i*14,this.y); 
+    <script>
+        // मोबाईल मेनू टॉगल
+        document.getElementById('menuBtn').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('show');
+        });
+        
+        // गेम प्ले करण्यासाठी फंक्शन
+        function playGame(gameType) {
+            const gameContainer = document.getElementById('gameContainer');
+            const gameFrame = document.getElementById('gameFrame');
+            
+            // गेम URL सेट करा (या ठिकाणी placeholder URL आहेत)
+            let gameUrl = '';
+            switch(gameType) {
+                case 'snake':
+                    gameUrl = 'https://www.addictinggames.com/embed/html5-games/24633';
+                    break;
+                case 'memory':
+                    gameUrl = 'https://www.addictinggames.com/embed/html5-games/23664';
+                    break;
+                case 'tictactoe':
+                    gameUrl = 'https://www.addictinggames.com/embed/html5-games/23364';
+                    break;
+                case 'color':
+                    gameUrl = 'https://www.addictinggames.com/embed/html5-games/23564';
+                    break;
+                default:
+                    gameUrl = 'https://www.addictinggames.com/embed/html5-games/24633';
+            }
+            
+            gameFrame.src = gameUrl;
+            gameContainer.style.display = 'flex';
         }
-      }
-      update(){
-        this.y+=this.speed;
-        if(this.y>canvas.height){
-          endGame();
+        
+        // गेम बंद करण्यासाठी फंक्शन
+        function closeGame() {
+            const gameContainer = document.getElementById('gameContainer');
+            const gameFrame = document.getElementById('gameFrame');
+            
+            gameFrame.src = '';
+            gameContainer.style.display = 'none';
         }
-      }
-    }
-
-    function spawnWord(){
-      const text=words[Math.floor(Math.random()*words.length)];
-      activeWords.push(new Word(text));
-    }
-
-    function update(){
-      if(!gameRunning) return;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      if(spawnCooldown<=0){
-        spawnWord();
-        spawnCooldown=80-Math.min(level*5,60);
-      }else spawnCooldown--;
-      activeWords.forEach(w=>w.update());
-      activeWords.forEach(w=>w.draw());
-      ctx.fillStyle="yellow";
-      ctx.fillText("Score: "+score,5,10);
-      ctx.fillText("Level: "+level,10,40);
-      requestAnimationFrame(update);
-    }
-
-    function checkInput(){
-      const val=inputField.value.trim().toLowerCase();
-      for(let i=0;i<activeWords.length;i++){
-        if(activeWords[i].text===val){
-          activeWords.splice(i,1);
-          score++;
-          if(score%5===0 && level<100) level++;
-          inputField.value="";
-          return;
-        }
-      }
-    }
-
-    function endGame(){
-      gameRunning=false;
-      gameOverScreen.style.display="flex";
-      finalScore.textContent="Game Over! Score: "+score;
-    }
-
-    function startGame(){
-      activeWords=[];score=0;level=1;spawnCooldown=0;
-      gameRunning=true;
-      gameOverScreen.style.display="none";
-      inputField.value="";
-      inputField.focus();
-      setTimeout(()=>inputField.focus(),200);
-      update();
-    }
-
-    startBtn.onclick=()=>{startGame()};
-    restartBtn.onclick=()=>{startGame()};
-    inputField.addEventListener("input",checkInput);
-  </script>
+        
+        // सर्व लिंक्ससाठी स्मूथ स्क्रोलिंग
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if(targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
-
-
